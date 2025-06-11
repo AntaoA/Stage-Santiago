@@ -1,9 +1,9 @@
 Internship with Prof. Gonzalo Navarro in Santiago (Chile) from 09-06-25 to 01-08-25.
 
 ------
-Monday 6th June
+Wednesday 11th June
 
-What's sr-index? [A Fast and Small Subsamplet R-index, Cobas, Gagie, Navarro 2021]
-
-    1 - R-index
+001 - Dynamic programming for approximate matching
+    Calculation of all the matrix (some upgrades are possibles)
+    Find all aproximate matching with less than k errors and print the errors
     
