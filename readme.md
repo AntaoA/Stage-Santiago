@@ -6,4 +6,6 @@ Wednesday 11th June
 001 - Dynamic programming for approximate matching
     Calculation of all the matrix (some upgrades are possibles)
     Find all aproximate matching with less than k errors and print the errors
-    
+
+
+002 - Approximate matching using suffix tree
