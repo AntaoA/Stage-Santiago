@@ -1,26 +1,27 @@
-// approximate matching algorithm using suffix tree
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "suffix_trie.h"
 
-
+//
+// Operation Enum and Data Structures
+//
 
 typedef enum { INS, DEL, SUB, EQ } operation;
 
 typedef struct {
-    int nbOp; // nombre d'opérations
-    operation* operations; // tableau des opérations
+    int nbOp;
+    operation* operations;
 } opArray;
 
 typedef struct {
-    int* array; // tableau des distances
-    opArray* op; // tableau des opérations
-    int len; // longueur du motif
+    int* array;
+    opArray* op;
+    int len;
 } distArray;
 
 typedef struct {
-    int positionFinale;
+    int endPosition;
     int nbModifs;
     opArray ops;
 } Match;
@@ -31,6 +32,9 @@ typedef struct {
     int capacity;
 } MatchList;
 
+//
+// MatchList Utilities
+//
 
 MatchList* createMatchList() {
     MatchList* list = malloc(sizeof(MatchList));
@@ -40,27 +44,21 @@ MatchList* createMatchList() {
     return list;
 }
 
-
 void freeOpArray(opArray o) {
-    if (o.operations != NULL) {
-        free(o.operations);
-    }
+    if (o.operations) free(o.operations);
 }
 
 opArray copyOpArray(opArray o) {
     opArray newO;
     newO.nbOp = o.nbOp;
     newO.operations = malloc(sizeof(operation) * (o.nbOp + 100));
-    for (int i = 0; i < o.nbOp; i++) {
-        newO.operations[i] = o.operations[i];
-    }
+    memcpy(newO.operations, o.operations, sizeof(operation) * o.nbOp);
     return newO;
 }
 
 void addOrUpdateMatch(MatchList* list, int pos, int nbModifs, opArray ops) {
-    // Si déjà un match à cette position, garder le meilleur
     for (int i = 0; i < list->size; i++) {
-        if (list->data[i].positionFinale == pos) {
+        if (list->data[i].endPosition == pos) {
             if (nbModifs < list->data[i].nbModifs) {
                 freeOpArray(list->data[i].ops);
                 list->data[i].nbModifs = nbModifs;
@@ -75,55 +73,32 @@ void addOrUpdateMatch(MatchList* list, int pos, int nbModifs, opArray ops) {
         list->data = realloc(list->data, sizeof(Match) * list->capacity);
     }
 
-    list->data[list->size].positionFinale = pos;
-    list->data[list->size].nbModifs = nbModifs;
-    list->data[list->size].ops = copyOpArray(ops);
-    list->size++;
+    list->data[list->size++] = (Match){pos, nbModifs, copyOpArray(ops)};
 }
 
-
 int cmpMatch(const void* a, const void* b) {
-    return ((Match*)a)->positionFinale - ((Match*)b)->positionFinale;
+    return ((Match*)a)->endPosition - ((Match*)b)->endPosition;
 }
 
 void printMatchList(MatchList* list, char* text, char* pattern) {
     qsort(list->data, list->size, sizeof(Match), cmpMatch);
-
     for (int idx = 0; idx < list->size; idx++) {
         Match m = list->data[idx];
-        printf("✅ Match trouvé à la position finale %d (à minima) avec %d modifications autorisées.\n", m.positionFinale, m.nbModifs);
-        int nbOperations = m.ops.nbOp;
-        char t[nbOperations + 1], p[nbOperations + 1], op[nbOperations + 1];
+        printf("✅ Match at position %d with %d edits.\n", m.endPosition, m.nbModifs);
+
+        int nbOp = m.ops.nbOp;
+        char t[nbOp + 1], p[nbOp + 1], op[nbOp + 1];
         int j = 1, k = 0;
-        for (int i = nbOperations - 1; i >= 0; i--) {
+
+        for (int i = nbOp - 1; i >= 0; i--) {
             switch (m.ops.operations[i]) {
-                case INS:
-                    t[i] = text[m.positionFinale - k];
-                    p[i] = '-';
-                    op[i] = ' ';
-                    k++;
-                    break;
-                case DEL:
-                    t[i] = '-';
-                    p[i] = pattern[strlen(pattern) - j];
-                    op[i] = ' ';
-                    j++;
-                    break;
-                case SUB:
-                    t[i] = text[m.positionFinale - k];
-                    p[i] = pattern[strlen(pattern) - j];
-                    op[i] = '*';
-                    j++; k++;
-                    break;
-                case EQ:
-                    t[i] = text[m.positionFinale - k];
-                    p[i] = pattern[strlen(pattern) - j];
-                    op[i] = '|';
-                    j++; k++;
-                    break;
+                case INS:  t[i] = text[m.endPosition - k]; p[i] = '-'; op[i] = ' '; k++; break;
+                case DEL:  t[i] = '-'; p[i] = pattern[strlen(pattern) - j]; op[i] = ' '; j++; break;
+                case SUB:  t[i] = text[m.endPosition - k]; p[i] = pattern[strlen(pattern) - j]; op[i] = '*'; j++; k++; break;
+                case EQ:   t[i] = text[m.endPosition - k]; p[i] = pattern[strlen(pattern) - j]; op[i] = '|'; j++; k++; break;
             }
         }
-        t[nbOperations] = p[nbOperations] = op[nbOperations] = '\0';
+        t[nbOp] = p[nbOp] = op[nbOp] = '\0';
         printf("%s\n%s\n%s\n\n", t, op, p);
     }
 }
@@ -136,163 +111,104 @@ void freeMatchList(MatchList* list) {
     free(list);
 }
 
+//
+// Distance Array
+//
 
 distArray initArray(int len) {
-    int* array = malloc(sizeof(int) * (len + 100));
-    opArray* op = malloc(sizeof(opArray) * (len + 100));
-    for (int i = 0; i <= len; i++) {
-        op[i].operations = malloc(sizeof(operation) * (len + 100));
-    }
+    distArray d;
+    d.array = malloc(sizeof(int) * (len + 1));
+    d.op = malloc(sizeof(opArray) * (len + 1));
+    d.len = len;
 
     for (int i = 0; i <= len; i++) {
-        array[i] = i; // Initialisation des distances
-        op[i].nbOp = i; // Aucune opération au départ
-        for (int j = 0; j < i; j++) {
-            op[i].operations[j] = DEL; // Initialisation des opérations à égalité
-        }
+        d.array[i] = i;
+        d.op[i].nbOp = i;
+        d.op[i].operations = malloc(sizeof(operation) * (len + 1));
+        for (int j = 0; j < i; j++) d.op[i].operations[j] = DEL;
     }
 
-    return (distArray){array, op, len};
+    return d;
 }
 
 distArray copyDistArray(distArray d) {
-    distArray newD;
-    newD.len = d.len;
-    newD.array = malloc(sizeof(int) * (d.len + 100));
-    newD.op = malloc(sizeof(opArray) * (d.len + 100));
+    distArray newD = initArray(d.len);
     for (int i = 0; i <= d.len; i++) {
         newD.array[i] = d.array[i];
-        newD.op[i].nbOp = d.op[i].nbOp;
-        newD.op[i].operations = malloc(sizeof(operation) * (d.len + 100));
-        for (int j = 0; j < d.op[i].nbOp; j++) {
-            newD.op[i].operations[j] = d.op[i].operations[j];
-        }
+        freeOpArray(newD.op[i]);
+        newD.op[i] = copyOpArray(d.op[i]);
     }
     return newD;
 }
 
-
-
-void majDistArray(char lettreAdd, char* pattern, distArray d) {
+void majDistArray(char c, char* pattern, distArray d) {
     int len = d.len;
-
-    // 1. Copier l'ancienne ligne de distance et d'opérations
     int* prevArray = malloc(sizeof(int) * (len + 1));
-    for (int i = 0; i <= len; i++) {
-        prevArray[i] = d.array[i];
-    }
+    memcpy(prevArray, d.array, sizeof(int) * (len + 1));
 
     opArray* prevOp = malloc(sizeof(opArray) * (len + 1));
-    for (int i = 0; i <= len; i++) {
-        prevOp[i] = copyOpArray(d.op[i]);
-    }
+    for (int i = 0; i <= len; i++) prevOp[i] = copyOpArray(d.op[i]);
 
-    // 2. Mise à jour d[0] = insertion
     d.array[0] = prevArray[0] + 1;
     freeOpArray(d.op[0]);
     d.op[0] = copyOpArray(prevOp[0]);
-    d.op[0].nbOp++;
-    d.op[0].operations[d.op[0].nbOp - 1] = INS;
+    d.op[0].operations[d.op[0].nbOp++] = INS;
 
-    // 3. Boucle de 1 à len
     for (int i = 1; i <= len; i++) {
-        int costSub = (pattern[i - 1] != lettreAdd) ? 1 : 0;
-
-        int del  = d.array[i - 1] + 1;
-        int ins  = prevArray[i] + 1;
-        int subeq = prevArray[i - 1] + costSub;
+        int cost = (pattern[i - 1] != c);
+        int del = d.array[i - 1] + 1;
+        int ins = prevArray[i] + 1;
+        int subeq = prevArray[i - 1] + cost;
 
         int min = ins;
         opArray chosen = copyOpArray(prevOp[i]);
-        chosen.nbOp++;
-        chosen.operations[chosen.nbOp - 1] = INS;
+        chosen.operations[chosen.nbOp++] = INS;
 
         if (del < min) {
             min = del;
             freeOpArray(chosen);
             chosen = copyOpArray(d.op[i - 1]);
-            chosen.nbOp++;
-            chosen.operations[chosen.nbOp - 1] = DEL;
+            chosen.operations[chosen.nbOp++] = DEL;
         }
 
         if (subeq < min) {
             min = subeq;
             freeOpArray(chosen);
             chosen = copyOpArray(prevOp[i - 1]);
-            chosen.nbOp++;
-            chosen.operations[chosen.nbOp - 1] = (costSub ? SUB : EQ);
+            chosen.operations[chosen.nbOp++] = cost ? SUB : EQ;
         }
 
         d.array[i] = min;
         freeOpArray(d.op[i]);
         d.op[i] = chosen;
     }
-    /*
-    // 4. Debug print
-    printf("\nLettre ajoutée: %c\n", lettreAdd);
-    printf("Distances : ");
-    for (int j = 0; j <= len; j++) printf("%d ", d.array[j]);
-    printf("\n");
-    */
 
-    // 5. Libération
     free(prevArray);
-    for (int i = 0; i <= len; i++) {
-        freeOpArray(prevOp[i]);
-    }
+    for (int i = 0; i <= len; i++) freeOpArray(prevOp[i]);
     free(prevOp);
 }
 
-
-void printDistArray(distArray d) {
-    int len = d.len;
-    printf("Distance array:\n");
-    for (int i = 0; i <= len; i++) {
-        printf("%d ", d.array[i]);
-    }
-    printf("\nOperations:\n");
-    for (int i = 0; i <= len; i++) {
-        printf("Index %d: ", i);
-        for (int j = 0; j < d.op[i].nbOp; j++) {
-            switch (d.op[i].operations[j]) {
-                case INS: printf("INS "); break;
-                case DEL: printf("DEL "); break;
-                case SUB: printf("SUB "); break;
-                case EQ:  printf("EQ "); break;
-            }
-        }
-        printf("\n");
-    }
-}
-
-
 void freeDistArray(distArray* d) {
-    if (d == NULL) return;
-    if (d->array != NULL) free(d->array);
-    if (d->op != NULL) {
-        for (int i = 0; i <= d->len; i++) {
-            freeOpArray(d->op[i]);
-        }
+    if (!d) return;
+    if (d->array) free(d->array);
+    if (d->op) {
+        for (int i = 0; i <= d->len; i++) freeOpArray(d->op[i]);
         free(d->op);
     }
 }
 
+//
+// Approximate Matching
+//
+
 int get_match_position(TrieNode* node) {
-    while (node != NULL && node->numChildren == 1 && node->suffixIndex == -1) {
-        node = node->children[0]; // Descendre dans l'arbre jusqu'à un noeud terminal ou avec plusieurs enfants
-    }
-    if (node == NULL) return -1; // Aucun match trouvé
-    if (node->suffixIndex != -1) {
-        return node->suffixIndex + 1;
-    }
-    return -1;
-    
+    while (node && node->childCount == 1 && node->suffixIndex == -1)
+        node = node->children[0];
+    return (node && node->suffixIndex != -1) ? node->suffixIndex + 1 : -1;
 }
 
-
-
-void dfs_approximate_matching(TrieNode* node, char* text, char* pattern, int k, distArray d, int textDepth, MatchList* matchList) {
-    if (node == NULL) return;
+void dfs_approximate_matching(TrieNode* node, char* text, char* pattern, int k, distArray d, int depth, MatchList* list) {
+    if (!node) return;
 
     int viable = 0;
     for (int i = 0; i <= d.len; i++) {
@@ -303,50 +219,50 @@ void dfs_approximate_matching(TrieNode* node, char* text, char* pattern, int k, 
     }
     if (!viable) return;
 
-    // 🔁 Exploration récursive sur les enfants
-    for (int i = 0; i < node->numChildren; i++) {
-        char lettreAdd = node->labels[i]; // caractère sur l'arête
+    for (int i = 0; i < node->childCount; i++) {
+        char c = node->labels[i];
         distArray newD = copyDistArray(d);
-        majDistArray(lettreAdd, pattern, newD);
+        majDistArray(c, pattern, newD);
+
         if (newD.array[newD.len] <= k) {
             int matchPos = get_match_position(node);
             if (matchPos >= 0) {
-                addOrUpdateMatch(matchList, matchPos + textDepth, newD.array[newD.len], newD.op[newD.len]);
+                addOrUpdateMatch(list, matchPos + depth, newD.array[newD.len], newD.op[newD.len]);
             }
         }
-        // 📦 Propagation avec une profondeur textuelle accrue
-        dfs_approximate_matching(node->children[i], text, pattern, k, newD, textDepth + 1, matchList);
+
+        dfs_approximate_matching(node->children[i], text, pattern, k, newD, depth + 1, list);
         freeDistArray(&newD);
     }
 }
 
-
 void approximateMatching(SuffixTrie* st, char* pattern, int k) {
-    // Implémentation de l'algorithme de correspondance approximative
-    // Utilisation de la structure distArray pour stocker les distances
-    int len = strlen(pattern);
-    distArray d = initArray(len);
-    MatchList* matchList = createMatchList();
-    dfs_approximate_matching(st->root, st->text, pattern, k, d, 0, matchList);
-    printMatchList(matchList, st->text, pattern);
+    distArray d = initArray(strlen(pattern));
+    MatchList* list = createMatchList();
+
+    dfs_approximate_matching(st->root, st->text, pattern, k, d, 0, list);
+
+    printMatchList(list, st->text, pattern);
     freeDistArray(&d);
+    freeMatchList(list);
 }
 
-
+//
+// Main
+//
 
 int main() {
     char text[100], pattern[100];
     printf("Enter the text: ");
     scanf("%s", text);
     printf("Enter the pattern: ");
-    scanf("%s", pattern)
-    ;
-    SuffixTrie* st = st_create(text);
+    scanf("%s", pattern);
 
+    SuffixTrie* st = st_create(text);
     st_print_compressed(st);
 
     int k;
-    printf("\nEnter the maximum number of errors allowed: ");
+    printf("\nMaximum allowed errors: ");
     scanf("%d", &k);
 
     approximateMatching(st, pattern, k);
