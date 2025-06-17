@@ -1,36 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include "suffix_trie.h"
+#include "STforAppMat.h"
 
 //
 // Operation Enum and Data Structures
 //
 
-typedef enum { INS, DEL, SUB, EQ } operation;
-
-typedef struct {
-    int nbOp;
-    operation* operations;
-} opArray;
-
-typedef struct {
-    int* array;
-    opArray* op;
-    int len;
-} distArray;
-
-typedef struct {
-    int endPosition;
-    int nbModifs;
-    opArray ops;
-} Match;
-
-typedef struct {
-    Match* data;
-    int size;
-    int capacity;
-} MatchList;
 
 //
 // MatchList Utilities
@@ -245,27 +218,4 @@ void approximateMatching(SuffixTrie* st, char* pattern, int k) {
     printMatchList(list, st->text, pattern);
     freeDistArray(&d);
     freeMatchList(list);
-}
-
-//
-// Main
-//
-
-int main() {
-    char text[100], pattern[100];
-    printf("Enter the text: ");
-    scanf("%s", text);
-    printf("Enter the pattern: ");
-    scanf("%s", pattern);
-
-    SuffixTrie* st = st_create(text);
-    st_print_compressed(st);
-
-    int k;
-    printf("\nMaximum allowed errors: ");
-    scanf("%d", &k);
-
-    approximateMatching(st, pattern, k);
-    st_destroy(st);
-    return 0;
 }
