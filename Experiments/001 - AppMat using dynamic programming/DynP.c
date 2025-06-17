@@ -1,12 +1,6 @@
 // Approximate matching with Dynamic Programming over DNAs sequence.
 
-
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-
+#include "DynP.h"
 
 int** createMatrix(char* sequence, char* pattern) {
     // Create and initialize a matrix for dynamic programming
@@ -73,17 +67,7 @@ void fillMatrix(int** matrix, char* sequence, char* pattern) {
     }
 }
 
-typedef struct {
-    int end;    // End index of the match in the sequence
-    int errors; // Number of errors in the match
-} MatchInfo;
 
-typedef struct MatchList {
-    MatchInfo* match; // Pointer to the match information
-    struct MatchList* next; // Pointer to the next match in the list
-} MatchList;
-
-typedef MatchList* MatchListPtr;
 
 MatchListPtr approximateMatching(int** matrix, char* sequence, char* pattern, int maxErrors) {
     // Find approximate matches in the matrix
@@ -176,42 +160,3 @@ void printMatrix(int** matrix, int rows, int cols) {
     }
 }
 
-int main() {
-    char sequence[100], pattern[100];
-    printf("Enter the sequence: ");
-    scanf("%s", sequence);
-    printf("Enter the pattern: ");
-    scanf("%s", pattern);
-
-    int** matrix = createMatrix(sequence, pattern);
-    int seqLen = strlen(sequence);
-    int patLen = strlen(pattern);
-
-    printf("Initial Matrix:\n");
-    printMatrix(matrix, patLen + 1, seqLen + 1);
-    printf("\n");
-
-
-    fillMatrix(matrix, sequence, pattern);
-    printf("Filled Matrix:\n");
-    printMatrix(matrix, patLen + 1, seqLen + 1);
-    printf("\n");
-
-    int maxErrors;
-    printf("Enter the maximum number of errors allowed: ");
-    scanf("%d", &maxErrors);
-
-    MatchListPtr matches = approximateMatching(matrix, sequence, pattern, maxErrors);
-    printf("Approximate Matches:\n");
-    while (matches != NULL) {
-        printf("End: %d, Errors: %d\n", matches->match->end, matches->match->errors);
-        analyzeMatching(matrix, sequence, pattern, *(matches->match));
-        MatchListPtr temp = matches;
-        matches = matches->next;
-        free(temp->match);
-        free(temp);
-    }
-    
-    freeMatrix(matrix, patLen + 1);
-    return 0;
-}
