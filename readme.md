@@ -7,5 +7,10 @@ Wednesday 11th June
     Calculation of all the matrix (some upgrades are possibles)
     Find all aproximate matching with less than k errors and print the errors
 
-
 002 - Approximate matching using suffix tree
+
+003 - Approximate matching using fragments
+    redundancy?
+    recurcivity?
+
+004 - Approximate matching using an hybrid version

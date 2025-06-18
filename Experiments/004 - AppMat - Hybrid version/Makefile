@@ -7,7 +7,8 @@ SRCS = main.c \
   ../002\ -\ AppMat\ using\ ST/suffix_trie.c \
   ../002\ -\ AppMat\ using\ ST/STforAppMat.c \
   ../003\ -\ AppMat\ using\ fragments/fragmentsAM.c \
-  ../003\ -\ AppMat\ using\ fragments/rabin_karp.c
+  ../003\ -\ AppMat\ using\ fragments/rabin_karp.c \
+  hybridAM.c
 
 all: $(TARGET)
 
