@@ -10,18 +10,18 @@ typedef struct {
     int errors; // Number of errors in the match
 } MatchInfo;
 
-typedef struct MatchList {
+typedef struct MatchInfoList {
     MatchInfo* match; // Pointer to the match information
-    struct MatchList* next; // Pointer to the next match in the list
-} MatchList;
+    struct MatchInfoList* next; // Pointer to the next match in the list
+} MatchInfoList;
 
-typedef MatchList* MatchListPtr;
+typedef MatchInfoList* MatchInfoListPtr;
 
 int** createMatrix(char* sequence, char* pattern);
 void fillMatrix(int** matrix, char* sequence, char* pattern);
 void printMatrix(int** matrix, int rows, int cols);
 void freeMatrix(int** matrix, int rows);
-MatchListPtr approximateMatching(int** matrix, char* sequence, char* pattern, int maxErrors);
+MatchInfoListPtr approximateMatchingDP(int** matrix, char* sequence, char* pattern, int maxErrors);
 void analyzeMatching(int** matrix, char* sequence, char* pattern, MatchInfo match);
 int min(int a, int b, int c);
 

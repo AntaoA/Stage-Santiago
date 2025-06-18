@@ -12,7 +12,7 @@
 #define INF 999999
 
 // === Operation Enum for Edit Distance ===
-typedef enum { DEL, INS, SUB, EQ } Operation;
+typedef enum { D, I, S, E } Operation;
 
 // === Alignment Struct to Store Edit Info ===
 typedef struct {
@@ -31,10 +31,10 @@ typedef struct fragment {
 
 // === List of Fragments ===
 typedef struct fragment_list {
-    Fragment* fragments;
+    Fragment* fragment;
     int size;
     int capacity;
-} FragmentList;
+} FragmentsList;
 
 // === Candidate Match in Text for a Fragment ===
 typedef struct {
@@ -45,32 +45,33 @@ typedef struct {
 
 // === List of Candidates ===
 typedef struct candidate_list {
-    Candidate* candidates;
+    Candidate* candidate;
     int size;
     int capacity;
-} CandidateList;
+} CandidatesList;
 
 
 
 
 // === Function Prototypes ===
 
-Alignment create_alignment();
-FragmentList* create_fragment_list();
-CandidateList* create_candidate_list();
+FragmentsList* create_fragment_list();
+CandidatesList* create_candidate_list();
 Candidate copy_candidate(Candidate* src);
 void free_alignment(Alignment* alignment);
-void free_fragment_list(FragmentList* list);
-void free_candidate_list(CandidateList* list);
-void print_fragment_list(FragmentList* list);
-void print_candidate_list(CandidateList* list);
+void free_fragment_list(FragmentsList* list);
+void free_candidate_list(CandidatesList* list);
+void print_fragment_list(FragmentsList* list);
+void print_candidate_list(CandidatesList* list);
 void strrev(char *str);
-FragmentList* make_fragments(char* pattern, int k);
-CandidateList* exact_match(char* text, Fragment frag);
-void add_candidates(CandidateList* dest, CandidateList* src);
-CandidateList* find_candidates(char* text, char* pattern, int k);
-Alignment edit_distance_aligned(char* text, char* pattern);
-void verify_candidates(CandidateList* candidates_list, char* text, char* pattern, int k);
-
+FragmentsList* make_fragments(char* pattern, int k);
+CandidatesList* exact_match(char* text, Fragment frag);
+void add_candidates(CandidatesList* dest, CandidatesList* src);
+CandidatesList* find_candidates(char* text, char* pattern, int k);
+Alignment* edit_distance_aligned(char* text, char* pattern);
+void verify_candidates(CandidatesList* candidates_list, char* text, char* pattern, int k);
+void revOperations(Alignment* align);
+void append_char(char* s, char c);
+int getStartPositionAlignment(Alignment* align, int endPosition);
 
 #endif /* CBDC2D85_F9CE_4DC6_985C_59517E577DA2 */

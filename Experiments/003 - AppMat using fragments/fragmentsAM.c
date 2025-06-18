@@ -5,24 +5,20 @@
 
 
 
-// === Fragment & Candidate Management ===
-Alignment create_alignment() {
-    return (Alignment){ .k = 0, .nbOp = 0, .operations = NULL };
-}
 
-FragmentList* create_fragment_list() {
-    FragmentList* list = malloc(sizeof(FragmentList));
+FragmentsList* create_fragment_list() {
+    FragmentsList* list = malloc(sizeof(FragmentsList));
     list->size = 0;
     list->capacity = 8;
-    list->fragments = malloc(sizeof(Fragment) * list->capacity);
+    list->fragment = malloc(sizeof(Fragment) * list->capacity);
     return list;
 }
 
-CandidateList* create_candidate_list() {
-    CandidateList* list = malloc(sizeof(CandidateList));
+CandidatesList* create_candidate_list() {
+    CandidatesList* list = malloc(sizeof(CandidatesList));
     list->size = 0;
     list->capacity = 8;
-    list->candidates = malloc(sizeof(Candidate) * list->capacity);
+    list->candidate = malloc(sizeof(Candidate) * list->capacity);
     return list;
 }
 
@@ -42,32 +38,32 @@ void free_alignment(Alignment* alignment) {
     free(alignment);
 }
 
-void free_fragment_list(FragmentList* list) {
+void free_fragment_list(FragmentsList* list) {
     for (int i = 0; i < list->size; i++)
-        free(list->fragments[i].text);
-    free(list->fragments);
+        free(list->fragment[i].text);
+    free(list->fragment);
     free(list);
 }
 
-void free_candidate_list(CandidateList* list) {
+void free_candidate_list(CandidatesList* list) {
     for (int i = 0; i < list->size; i++)
-        free(list->candidates[i].fragment.text);
-    free(list->candidates);
+        free(list->candidate[i].fragment.text);
+    free(list->candidate);
     free(list);
 }
 
-void print_fragment_list(FragmentList* list) {
+void print_fragment_list(FragmentsList* list) {
     for (int i = 0; i < list->size; i++)
         printf("Fragment %d: '%s' from [%d, %d]\n",
-               list->fragments[i].id, list->fragments[i].text,
-               list->fragments[i].start, list->fragments[i].end);
+               list->fragment[i].id, list->fragment[i].text,
+               list->fragment[i].start, list->fragment[i].end);
 }
 
-void print_candidate_list(CandidateList* list) {
+void print_candidate_list(CandidatesList* list) {
     for (int i = 0; i < list->size; i++)
         printf("Candidate %d: Fragment '%s' (%d) at text position [%d, %d]\n",
-               i, list->candidates[i].fragment.text, list->candidates[i].fragment.id,
-               list->candidates[i].start_text, list->candidates[i].end_text);
+               i, list->candidate[i].fragment.text, list->candidate[i].fragment.id,
+               list->candidate[i].start_text, list->candidate[i].end_text);
 }
 
 void strrev(char *str) {
@@ -81,8 +77,8 @@ void strrev(char *str) {
 }
 
 // === Fragment Splitting ===
-FragmentList* make_fragments(char* text, int k) {
-    FragmentList* list = create_fragment_list();
+FragmentsList* make_fragments(char* text, int k) {
+    FragmentsList* list = create_fragment_list();
     int len = strlen(text);
     int len_frag = len / (k + 1);
     int nb_frag_high = len % (k + 1);
@@ -94,7 +90,7 @@ FragmentList* make_fragments(char* text, int k) {
         frag.id = i;
 
         int frag_len = (i < nb_frag_high) ? len_frag + 1 : len_frag;
-        frag.end = frag.start + frag_len;
+        frag.end = frag.start + frag_len - 1;
         frag.text = malloc(sizeof(char) * (frag_len + 1));
         strncpy(frag.text, text + frag.start, frag_len);
         frag.text[frag_len] = '\0';
@@ -103,38 +99,38 @@ FragmentList* make_fragments(char* text, int k) {
 
         if (list->size >= list->capacity) {
             list->capacity *= 2;
-            list->fragments = realloc(list->fragments, sizeof(Fragment) * list->capacity);
+            list->fragment = realloc(list->fragment, sizeof(Fragment) * list->capacity);
         }
 
-        list->fragments[list->size++] = frag;
+        list->fragment[list->size++] = frag;
     }
 
     return list;
 }
 
-CandidateList* exact_match(char* text, Fragment frag) {
-    CandidateList* list = create_candidate_list();
+CandidatesList* exact_match(char* text, Fragment frag) {
+    CandidatesList* list = create_candidate_list();
     rabin_karp(text, frag, list);
     return list;
 }
 
-void add_candidates(CandidateList* dest, CandidateList* src) {
+void add_candidates(CandidatesList* dest, CandidatesList* src) {
     for (int i = 0; i < src->size; i++) {
         if (dest->size >= dest->capacity) {
             dest->capacity *= 2;
-            dest->candidates = realloc(dest->candidates, sizeof(Candidate) * dest->capacity);
+            dest->candidate = realloc(dest->candidate, sizeof(Candidate) * dest->capacity);
         }
-        dest->candidates[dest->size++] = copy_candidate(&src->candidates[i]);
+        dest->candidate[dest->size++] = copy_candidate(&src->candidate[i]);
     }
 }
 
-CandidateList* find_candidates(char* text, char* pattern, int k) {
-    FragmentList* fragments = make_fragments(pattern, k);
+CandidatesList* find_candidates(char* text, char* pattern, int k) {
+    FragmentsList* fragments = make_fragments(pattern, k);
     print_fragment_list(fragments);
-    CandidateList* all_candidates = create_candidate_list();
+    CandidatesList* all_candidates = create_candidate_list();
 
     for (int i = 0; i < fragments->size; i++) {
-        CandidateList* matches = exact_match(text, fragments->fragments[i]);
+        CandidatesList* matches = exact_match(text, fragments->fragment[i]);
         add_candidates(all_candidates, matches);
         free_candidate_list(matches);
     }
@@ -145,7 +141,8 @@ CandidateList* find_candidates(char* text, char* pattern, int k) {
 
 
 // === Edit Distance Computation ===
-Alignment edit_distance_aligned(char* text, char* pattern) {
+Alignment* edit_distance_aligned(char* text, char* pattern) {
+    Alignment* alignment = malloc(sizeof(Alignment));
     int m = strlen(pattern);
     int n = strlen(text);
 
@@ -155,15 +152,15 @@ Alignment edit_distance_aligned(char* text, char* pattern) {
 
     Operation* back = malloc((m + 1) * (n + 1) * sizeof(Operation));
     #define BACK(i,j) back[(i)*(n+1)+(j)]
-    BACK(0,0) = EQ;
+    BACK(0,0) = E;
 
     for (int j = 1; j <= n; j++) {
         DP(0,j) = INF;
-        BACK(0,j) = INS;
+        BACK(0,j) = I;
     }
     for (int i = 1; i <= m; i++) {
         DP(i,0) = i;
-        BACK(i,0) = DEL;
+        BACK(i,0) = D;
     }
 
     for (int i = 1; i <= m; i++) {
@@ -174,10 +171,10 @@ Alignment edit_distance_aligned(char* text, char* pattern) {
             int sub = DP(i-1,j-1) + cost_sub;
 
             DP(i,j) = sub;
-            BACK(i,j) = cost_sub ? SUB : EQ;
+            BACK(i,j) = cost_sub ? S : E;
 
-            if (del < DP(i,j)) { DP(i,j) = del; BACK(i,j) = DEL; }
-            if (ins < DP(i,j)) { DP(i,j) = ins; BACK(i,j) = INS; }
+            if (del < DP(i,j)) { DP(i,j) = del; BACK(i,j) = D; }
+            if (ins < DP(i,j)) { DP(i,j) = ins; BACK(i,j) = I; }
         }
     }
 
@@ -195,9 +192,9 @@ Alignment edit_distance_aligned(char* text, char* pattern) {
     while (i > 0 || j > 0) {
         Operation op = BACK(i,j);
         ops[nbOp++] = op;
-        if (op == EQ || op == SUB) { i--; j--; }
-        else if (op == DEL) { i--; }
-        else if (op == INS) { j--; }
+        if (op == E || op == S) { i--; j--; }
+        else if (op == D) { i--; }
+        else if (op == I) { j--; }
     }
 
     for (int a = 0; a < nbOp / 2; a++) {
@@ -208,8 +205,10 @@ Alignment edit_distance_aligned(char* text, char* pattern) {
 
     free(dp);
     free(back);
-
-    return (Alignment){ .k = min_k, .nbOp = nbOp, .operations = ops };
+    alignment->k = min_k;
+    alignment->nbOp = nbOp;
+    alignment->operations = ops;
+    return alignment;
 }
 
 // === Append Utility for Debug Strings ===
@@ -219,13 +218,36 @@ void append_char(char* s, char c) {
     s[len + 1] = '\0';
 }
 
+// === Reverse Operations in Alignment ===
+void revOperations(Alignment* align) {
+    for (int i = 0; i < align->nbOp / 2; i++) {
+        Operation tmp = align->operations[i];
+        align->operations[i] = align->operations[align->nbOp - 1 - i];
+        align->operations[align->nbOp - 1 - i] = tmp;
+    }
+}
+
+// === Get Start Position from Alignment ===
+int getStartPositionAlignment(Alignment* align, int endPosition) {
+    int start = endPosition + 1; // Start after the last character of the match
+    for (int i = align->nbOp - 1; i >= 0; i--) {
+        switch (align->operations[i]) {
+            case D: break;
+            default: // I, S, E
+                start--;
+                break;
+        }
+    }
+    return start;
+}
+
 // === Candidate Verification by Approximate Matching ===
-void verify_candidates(CandidateList* candidates_list, char* text, char* pattern, int k) {
+void verify_candidates(CandidatesList* candidates_list, char* text, char* pattern, int k) {
     int text_len = strlen(text);
     int pattern_len = strlen(pattern);
 
     for (int i = 0; i < candidates_list->size; i++) {
-        Candidate* cand = &candidates_list->candidates[i];
+        Candidate* cand = &candidates_list->candidate[i];
         int start_left = MAX(cand->start_text - cand->fragment.start - k, 0);
 
         char text_left[cand->start_text - start_left + 1];
@@ -238,36 +260,38 @@ void verify_candidates(CandidateList* candidates_list, char* text, char* pattern
 
         strrev(text_left);
         strrev(pattern_left);
-        Alignment align_left = edit_distance_aligned(text_left, pattern_left);
-        int k_left = align_left.k;
-        if (k_left == INF) continue;
+        Alignment* align_left = edit_distance_aligned(text_left, pattern_left);
+        revOperations(align_left);
+        int k_left = align_left->k;
+        if (k_left > k) continue;
 
         int k_right_max = k - k_left;
-        int end_right = MIN(cand->end_text + (pattern_len - cand->fragment.end - 1) + k_left, text_len);
+        int end_right = MIN(cand->end_text + (pattern_len - cand->fragment.end - 1) + k_right_max, text_len);
 
         char text_right[end_right - cand->end_text + 1];
-        strncpy(text_right, text + cand->end_text, end_right - cand->end_text);
+        strncpy(text_right, text + cand->end_text + 1, end_right - cand->end_text);
         text_right[end_right - cand->end_text] = '\0';
 
-        char pattern_right[pattern_len - cand->fragment.end + 1];
-        strncpy(pattern_right, pattern + cand->fragment.end, pattern_len - cand->fragment.end);
-        pattern_right[pattern_len - cand->fragment.end] = '\0';
+        char pattern_right[pattern_len - cand->fragment.end];
+        strncpy(pattern_right, pattern + cand->fragment.end + 1, pattern_len - cand->fragment.end);
+        pattern_right[pattern_len - cand->fragment.end - 1] = '\0';
 
-        Alignment align_right = edit_distance_aligned(text_right, pattern_right);
-        int k_right = align_right.k;
+        Alignment* align_right = edit_distance_aligned(text_right, pattern_right);
+        int k_right = align_right->k;
 
         if (k_right > k_right_max) continue;
 
         printf("Candidate %d is valid with %d errors.\n", i, k_left + k_right);
         char t[100] = "", p[100] = "", op[100] = "";
-        int i_p = 0, i_t = MAX(cand->start_text - cand->fragment.start - k_left , 0);
+        int i_p = 0;
+        int i_t = getStartPositionAlignment(align_left, cand->start_text - 1);
 
-        for (int j = 0; j < align_left.nbOp; j++) {
-            switch (align_left.operations[j]) {
-                case DEL: append_char(t, '-'); append_char(p, pattern[i_p++]); append_char(op, ' '); break;
-                case INS: append_char(t, text[i_t++]); append_char(p, '-'); append_char(op, ' '); break;
-                case SUB: append_char(t, text[i_t++]); append_char(p, pattern[i_p++]); append_char(op, '|'); break;
-                case EQ:  append_char(t, text[i_t++]); append_char(p, pattern[i_p++]); append_char(op, '|'); break;
+        for (int j = 0; j < align_left->nbOp; j++) {
+            switch (align_left->operations[j]) {
+                case D: append_char(t, '-'); append_char(p, pattern[i_p++]); append_char(op, ' '); break;
+                case I: append_char(t, text[i_t++]); append_char(p, '-'); append_char(op, ' '); break;
+                case S: append_char(t, text[i_t++]); append_char(p, pattern[i_p++]); append_char(op, '*'); break;
+                case E:  append_char(t, text[i_t++]); append_char(p, pattern[i_p++]); append_char(op, '|'); break;
             }
         }
 
@@ -278,12 +302,12 @@ void verify_candidates(CandidateList* candidates_list, char* text, char* pattern
             i_t++; i_p++;
         }
 
-        for (int j = 0; j < align_right.nbOp; j++) {
-            switch (align_right.operations[j]) {
-                case DEL: append_char(t, '-'); append_char(p, pattern[i_p++]); append_char(op, ' '); break;
-                case INS: append_char(t, text[i_t++]); append_char(p, '-'); append_char(op, ' '); break;
-                case SUB: append_char(t, text[i_t++]); append_char(p, pattern[i_p++]); append_char(op, '|'); break;
-                case EQ:  append_char(t, text[i_t++]); append_char(p, pattern[i_p++]); append_char(op, '|'); break;
+        for (int j = 0; j < align_right->nbOp; j++) {
+            switch (align_right->operations[j]) {
+                case D: append_char(t, '-'); append_char(p, pattern[i_p++]); append_char(op, ' '); break;
+                case I: append_char(t, text[i_t++]); append_char(p, '-'); append_char(op, ' '); break;
+                case S: append_char(t, text[i_t++]); append_char(p, pattern[i_p++]); append_char(op, '*'); break;
+                case E:  append_char(t, text[i_t++]); append_char(p, pattern[i_p++]); append_char(op, '|'); break;
             }
         }
 

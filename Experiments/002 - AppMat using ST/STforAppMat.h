@@ -48,8 +48,9 @@ distArray initArray(int len);
 void freeDistArray(distArray* d);
 void dfs_approximate_matching(TrieNode* node, char* text, char* pattern, int k, distArray d, int depth, MatchList* list);
 int get_match_position(TrieNode* node);
-void approximateMatching(SuffixTrie* st, char* pattern, int k);
+void approximateMatching(SuffixTrie* st, char* pattern, int k, MatchList* list);
 distArray copyDistArray(distArray d);
+int getStartPositionOpArray(opArray ops, int endPosition);
 
 
 

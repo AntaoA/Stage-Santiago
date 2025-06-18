@@ -69,10 +69,10 @@ void fillMatrix(int** matrix, char* sequence, char* pattern) {
 
 
 
-MatchListPtr approximateMatching(int** matrix, char* sequence, char* pattern, int maxErrors) {
+MatchInfoListPtr approximateMatchingDP(int** matrix, char* sequence, char* pattern, int maxErrors) {
     // Find approximate matches in the matrix
-    MatchListPtr head = NULL;
-    MatchListPtr tail = NULL;
+    MatchInfoListPtr head = NULL;
+    MatchInfoListPtr tail = NULL;
     int seqLen = strlen(sequence);
     int patLen = strlen(pattern);
 
@@ -82,7 +82,7 @@ MatchListPtr approximateMatching(int** matrix, char* sequence, char* pattern, in
             match->end = i;
             match->errors = matrix[patLen][i];
 
-            MatchListPtr newNode = (MatchListPtr)malloc(sizeof(MatchList));
+            MatchInfoListPtr newNode = (MatchInfoListPtr)malloc(sizeof(MatchInfoList));
             newNode->match = match;
             newNode->next = NULL;
 

@@ -14,8 +14,10 @@ int main() {
     int k;
     printf("\nMaximum allowed errors: ");
     scanf("%d", &k);
-
-    approximateMatching(st, pattern, k);
+    MatchList* matches = createMatchList();
+    approximateMatching(st, pattern, k, matches);
+    printMatchList(matches, st->text, pattern);
+    freeMatchList(matches);
     st_destroy(st);
     return 0;
 }

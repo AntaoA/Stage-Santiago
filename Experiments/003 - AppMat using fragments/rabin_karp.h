@@ -16,7 +16,7 @@ typedef struct {
 } HashPair;
 
 
-void rabin_karp(char* text, Fragment frag, CandidateList* list);
+void rabin_karp(char* text, Fragment frag, CandidatesList* list);
 
 
 

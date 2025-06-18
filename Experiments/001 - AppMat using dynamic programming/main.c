@@ -25,12 +25,12 @@ int main() {
     printf("Enter the maximum number of errors allowed: ");
     scanf("%d", &maxErrors);
 
-    MatchListPtr matches = approximateMatching(matrix, sequence, pattern, maxErrors);
+    MatchInfoListPtr matches = approximateMatchingDP(matrix, sequence, pattern, maxErrors);
     printf("Approximate Matches:\n");
     while (matches != NULL) {
         printf("End: %d, Errors: %d\n", matches->match->end, matches->match->errors);
         analyzeMatching(matrix, sequence, pattern, *(matches->match));
-        MatchListPtr temp = matches;
+        MatchInfoListPtr temp = matches;
         matches = matches->next;
         free(temp->match);
         free(temp);

@@ -11,7 +11,7 @@ int main() {
     printf("Enter the maximum number of errors allowed: ");
     scanf("%d", &k);
 
-    CandidateList* candidates = find_candidates(text, pattern, k);
+    CandidatesList* candidates = find_candidates(text, pattern, k);
     print_candidate_list(candidates);
     verify_candidates(candidates, text, pattern, k);
     free_candidate_list(candidates);

@@ -1,13 +1,5 @@
 #include "STforAppMat.h"
 
-//
-// Operation Enum and Data Structures
-//
-
-
-//
-// MatchList Utilities
-//
 
 MatchList* createMatchList() {
     MatchList* list = malloc(sizeof(MatchList));
@@ -114,6 +106,8 @@ distArray copyDistArray(distArray d) {
     return newD;
 }
 
+
+
 void majDistArray(char c, char* pattern, distArray d) {
     int len = d.len;
     int* prevArray = malloc(sizeof(int) * (len + 1));
@@ -174,10 +168,23 @@ void freeDistArray(distArray* d) {
 // Approximate Matching
 //
 
+int getStartPositionOpArray(opArray ops, int endPosition) {
+    int start = endPosition + 1; // Start after the last character of the match
+    for (int i = ops.nbOp - 1; i >= 0; i--) {
+        switch (ops.operations[i]) {
+            case DEL: break;
+            default: // INS, SUB, EQ
+                start--;
+                break;
+        }
+    }
+    return start;
+}
+
 int get_match_position(TrieNode* node) {
     while (node && node->childCount == 1 && node->suffixIndex == -1)
         node = node->children[0];
-    return (node && node->suffixIndex != -1) ? node->suffixIndex + 1 : -1;
+    return (node && node->suffixIndex != -1) ? node->suffixIndex : -1;
 }
 
 void dfs_approximate_matching(TrieNode* node, char* text, char* pattern, int k, distArray d, int depth, MatchList* list) {
@@ -209,13 +216,9 @@ void dfs_approximate_matching(TrieNode* node, char* text, char* pattern, int k, 
     }
 }
 
-void approximateMatching(SuffixTrie* st, char* pattern, int k) {
+void approximateMatching(SuffixTrie* st, char* pattern, int k, MatchList* list) {
     distArray d = initArray(strlen(pattern));
-    MatchList* list = createMatchList();
 
     dfs_approximate_matching(st->root, st->text, pattern, k, d, 0, list);
-
-    printMatchList(list, st->text, pattern);
     freeDistArray(&d);
-    freeMatchList(list);
 }

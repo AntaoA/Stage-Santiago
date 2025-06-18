@@ -13,7 +13,7 @@ HashPair double_hash(char* str, int len) {
 }
 
 
-void rabin_karp(char* text, Fragment frag, CandidateList* candidates_list) {
+void rabin_karp(char* text, Fragment frag, CandidatesList* candidates_list) {
     char* pattern = frag.text;
     int n = strlen(text);
     int m = strlen(pattern);
@@ -41,10 +41,10 @@ void rabin_karp(char* text, Fragment frag, CandidateList* candidates_list) {
 
             if (candidates_list->size >= candidates_list->capacity) {
                 candidates_list->capacity *= 2;
-                candidates_list->candidates = realloc(candidates_list->candidates,
+                candidates_list->candidate = realloc(candidates_list->candidate,
                                                       sizeof(Candidate) * candidates_list->capacity);
             }
-            candidates_list->candidates[candidates_list->size++] = cand;
+            candidates_list->candidate[candidates_list->size++] = cand;
         }
 
         if (i < n - m) {
