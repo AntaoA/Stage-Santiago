@@ -16,10 +16,10 @@ int main() {
     printf("Enter the number of fragments: ");
     scanf("%d", &j);*/
 
-    char* text = "zoigjzeiofjzeiojfozijfziofjzeiofj";
-    char* pattern = "zoeifjzioejzef";
-    int k = 6;
-    int j = 4;
+    char* text = "ALABARALAALABARDA";
+    char* pattern = "BLADARBA";
+    int k = 3;
+    int j = 2;
 
     // Create suffix trie from the text
     SuffixTrie* trie = st_create(text);

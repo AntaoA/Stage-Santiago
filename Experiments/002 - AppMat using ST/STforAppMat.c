@@ -181,10 +181,29 @@ int getStartPositionOpArray(opArray ops, int endPosition) {
     return start;
 }
 
-int get_match_position(TrieNode* node) {
-    while (node && node->childCount == 1 && node->suffixIndex == -1)
-        node = node->children[0];
-    return (node && node->suffixIndex != -1) ? node->suffixIndex : -1;
+void rec_all_positions(TrieNode* node, allPositions* positions) {
+    if (!node) return;
+
+    if (node->suffixIndex >= 0) {
+        if (positions->size >= positions->capacity) {
+            positions->capacity *= 2;
+            positions->positions = realloc(positions->positions, sizeof(int) * positions->capacity);
+        }
+        positions->positions[positions->size++] = node->suffixIndex;
+    }
+
+    for (int i = 0; i < node->childCount; i++) {
+        rec_all_positions(node->children[i], positions);
+    }
+}
+
+allPositions getAllPositions(TrieNode* node) {
+    allPositions positions;
+    positions.size = 0;
+    positions.capacity = 4;
+    positions.positions = malloc(sizeof(int) * positions.capacity);
+    rec_all_positions(node, &positions);
+    return positions;
 }
 
 void dfs_approximate_matching(TrieNode* node, char* text, char* pattern, int k, distArray d, int depth, MatchList* list) {
@@ -197,20 +216,27 @@ void dfs_approximate_matching(TrieNode* node, char* text, char* pattern, int k, 
             break;
         }
     }
-    if (!viable) return;
+    if (!viable) {
+        return;
+    }
 
     for (int i = 0; i < node->childCount; i++) {
         char c = node->labels[i];
+        printf("Visiting child %d with label '%c' at depth %d\n", i, c, depth);
         distArray newD = copyDistArray(d);
         majDistArray(c, pattern, newD);
 
         if (newD.array[newD.len] <= k) {
-            int matchPos = get_match_position(node);
-            if (matchPos >= 0) {
-                addOrUpdateMatch(list, matchPos + depth, newD.array[newD.len], newD.op[newD.len]);
+            allPositions positions = getAllPositions(node->children[i]);
+            for (int j = 0; j < positions.size; j++) {
+                int matchPos = positions.positions[j];
+                if (matchPos >= 0) {
+                    int endPos = matchPos + depth;
+                    printf("Found match at position %d with %d edits\n", endPos, newD.array[newD.len]);
+                    addOrUpdateMatch(list, endPos, newD.array[newD.len], newD.op[newD.len]);
+                }
             }
         }
-
         dfs_approximate_matching(node->children[i], text, pattern, k, newD, depth + 1, list);
         freeDistArray(&newD);
     }

@@ -1,0 +1,8 @@
+#ifndef C3326A8B_78A8_4B38_B26B_7E6325265EFB
+#define C3326A8B_78A8_4B38_B26B_7E6325265EFB
+
+#include <stdlib.h>
+
+int* build_del(int n);
+
+#endif /* C3326A8B_78A8_4B38_B26B_7E6325265EFB */

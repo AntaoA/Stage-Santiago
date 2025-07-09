@@ -8,6 +8,11 @@
 #include "suffix_trie.h"
 
 
+typedef struct {
+    int* positions;
+    int size;
+    int capacity;
+} allPositions;
 
 
 typedef enum { INS, DEL, SUB, EQ } operation;
@@ -47,7 +52,7 @@ void majDistArray(char c, char* pattern, distArray d);
 distArray initArray(int len);
 void freeDistArray(distArray* d);
 void dfs_approximate_matching(TrieNode* node, char* text, char* pattern, int k, distArray d, int depth, MatchList* list);
-int get_match_position(TrieNode* node);
+allPositions getAllPositions(TrieNode* node);
 void approximateMatching(SuffixTrie* st, char* pattern, int k, MatchList* list);
 distArray copyDistArray(distArray d);
 int getStartPositionOpArray(opArray ops, int endPosition);

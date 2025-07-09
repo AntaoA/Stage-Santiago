@@ -3,7 +3,7 @@ TARGET = main
 
 # Compilateur et options
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -std=c11
+CFLAGS = -Wall -Wextra -O0 -g -std=c11
 
 # Fichiers source (main + module)
 SRCS = main.c suffix_trie.c STforAppMat.c

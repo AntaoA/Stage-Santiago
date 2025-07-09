@@ -1,6 +1,6 @@
 TARGET = main
 CC = gcc
-CFLAGS = -Wall -Wextra -O2 -std=c11
+CFLAGS = -Wall -Wextra -O0 -g -std=c11
 
 SRCS = main.c \
   ../001\ -\ AppMat\ using\ dynamic\ programming/DynP.c \
