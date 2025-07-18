@@ -2,9 +2,9 @@
 
 srIndex* create_sr_index(const char* text, int s) {
     int n = strlen(text);
-    int n_letter = 0;
+    int n_alphabet = 0;
     const char* alphabet = "$ABDLR"; // Exemple d'alphabet
-    n_letter = strlen(alphabet);
+    n_alphabet = strlen(alphabet);
 
     unsigned char* input = malloc(n);
     memcpy(input, text, n);
@@ -14,6 +14,8 @@ srIndex* create_sr_index(const char* text, int s) {
 
     build_suffix_array(input, n, SA);
     build_bwt(input, n, SA, BWT);
+
+    unsigned int last_sa = SA[n - 1];
 
     int num_runs;
     BWT_Run* runs = extract_bwt_runs(BWT, n, &num_runs);
@@ -35,18 +37,19 @@ srIndex* create_sr_index(const char* text, int s) {
     
     unsigned int* mapFL = build_mapfl(lsa, num_runs, n, FT, SA);
     unsigned int* s_mapFL = build_mapfl(s_lsa.LSA, s_lsa.len, n, s_FT, SA);
-    
-    unsigned int* C = build_C_from_text(text, n, alphabet, n_letter);
-    
+
+    unsigned int* C = build_C_from_text(text, n, alphabet, n_alphabet);
+
     unsigned int* LF = build_lf(C, BWT, n);
 
     srIndex* index = malloc(sizeof(srIndex));
     index->s = s;
     index->alphabet = alphabet;
-    index->n_letter = n_letter;
+    index->n_alphabet = n_alphabet;
     index->n = n;
     index->start = starts;
     index->letters = letters;
+    index->n_runs = num_runs;
     index->lsa.LSA = s_lsa.LSA;
     index->lsa.len = s_lsa.len;
     index->del = del;
@@ -54,6 +57,7 @@ srIndex* create_sr_index(const char* text, int s) {
     index->mapFL = s_mapFL;
     index->C = C;
     index->LF = LF;
+    index->last_sa = last_sa;
     free(input);
     free(SA);
     free(BWT);

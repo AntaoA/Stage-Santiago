@@ -18,10 +18,10 @@ int select1(const unsigned int* FT, int n, int rank) {
     int count = 0;
     for (int i = 0; i < n; i++) {
         if (FT[i] == 1) {
+            count++;
             if (count == rank) {
                 return i; // Retourne la position du rang demandé
             }
-            count++;
         }
     }
     return -1; // Rang non trouvé
@@ -38,6 +38,22 @@ int select_c(const unsigned char* FT, int len, unsigned char c, int n_c) {
         }
     }
     return -1; // n-ème caractère c non trouvé
+}
+
+int select_c_bwt(unsigned char c, int n_c, const unsigned int* start, const unsigned char* letters) {
+    int count = 0;
+    int i = 0;
+    int p = -1;
+    while (count < n_c) {
+        if (start[i] == 1) {
+            p++;
+        }
+        if (letters[p] == c) {
+            count++;
+        }
+        i++;
+    }
+    return i-1;
 }
 
 int pred1(const unsigned int* FT, int n, int pos) {

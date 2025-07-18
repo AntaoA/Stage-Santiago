@@ -6,9 +6,13 @@ int rank1(const unsigned int* FT, int n);
 
 int select1(const unsigned int* FT, int n, int rank);
 
+int select1_bis(const unsigned int* FT, int n, int rank);
+
 int pred1(const unsigned int* FT, int n, int pos);
 
 int select_c(const unsigned char* FT, int len, unsigned char c, int n_c);
+
+int select_c_bwt(unsigned char c, int n_c, const unsigned int* start, const unsigned char* letters);
 
 int rank0(const unsigned int* FT, int n);
 

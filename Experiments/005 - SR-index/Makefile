@@ -2,7 +2,7 @@
 TARGET = main
 
 # Fichiers sources
-SRC = main.c sa.c bwt.c lsa.c ft.c mapfl.c c.c phi.c utils.c lf.c sr-index.c findToehold.c
+SRC = main.c sa.c bwt.c lsa.c ft.c mapfl.c c.c phi.c utils.c lf.c sr-index.c findToehold.c count.c
 
 # Bibliothèques à linker
 LDFLAGS = -ldivsufsort

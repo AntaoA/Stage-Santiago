@@ -16,16 +16,18 @@
 typedef struct srIndex {
     int s;
     const char* alphabet;
-    int n_letter;
+    int n_alphabet;
     int n;
     unsigned int* start;
     unsigned char* letters;
+    int n_runs;
     LSA lsa;
     unsigned int* del;
     unsigned int* FT;
     unsigned int* mapFL;
     unsigned int* C;
     unsigned int* LF;
+    unsigned int last_sa;
 } srIndex;
 
 srIndex* create_sr_index(const char* text, int s);

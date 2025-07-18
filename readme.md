@@ -57,3 +57,10 @@ Paper - A Fast and Small Subsampled R-index
         ? Possibility of regrouping stack regarding the error's counter ?
 
     FindToeHold and Locate are not changed.
+
+
+
+	Pour le count approx forward, j'ai besoin d'avoir select_c(BWT, i) 
+	Ça se calcule rapidement en o(log nb_run_c) grosso modo, en faire une recherche dichotomique pour sur select1(start, select_c(letter j)) et select1(start, rank1(start, i_a + 1))
+	Je l'ai implémenté salement dans le projet.
+
