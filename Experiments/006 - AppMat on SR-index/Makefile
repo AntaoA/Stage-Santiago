@@ -19,6 +19,10 @@ SRCS = main.c \
 	../005\ -\ SR-index/c.c \
        count_approx.c \
        findToehold_approx.c \
+       locate_approx.c \
+       fragments_candidates.c \
+       verify.c \
+       approx_forward.c
 
 all: $(TARGET)
 
